@@ -3,6 +3,8 @@ package com.example.bottomnestednavigationtest.ui.notifications
 import android.os.*
 import android.view.*
 import androidx.fragment.app.*
+import androidx.navigation.fragment.*
+import com.example.bottomnestednavigationtest.*
 import com.example.bottomnestednavigationtest.databinding.*
 
 class NotificationFragment : Fragment() {
@@ -18,6 +20,13 @@ class NotificationFragment : Fragment() {
         _binding = FragmentNotificationBinding.inflate(inflater, container, false)
 
         binding.textNotification.text = "Уведомление"
+
+        binding.buttonOpenDial.setOnClickListener {
+            val navController = findNavController()
+
+            findNavController().navigate(NavigationHostMainDirections.showDialInfo())
+            findNavController().navigate(NavigationHostMainDirections.showDialInfo())
+        }
 
         return binding.root
     }

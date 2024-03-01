@@ -9,4 +9,13 @@
     <include app:graph="@navigation/navigation_graph_dashboard" />
 
     <include app:graph="@navigation/navigation_graph_notifications" />
+
+    <dialog
+        android:id="@+id/navigation_dial_info"
+        android:name="com.example.bottomnestednavigationtest.ui.dialogs.InfoDialog" />
+
+    <action
+        android:id="@+id/show_dial_info"
+        app:destination="@id/navigation_dial_info"
+        app:launchSingleTop="true" />
 </navigation>
