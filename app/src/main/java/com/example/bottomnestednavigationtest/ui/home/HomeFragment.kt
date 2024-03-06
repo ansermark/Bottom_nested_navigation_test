@@ -7,7 +7,9 @@ import android.widget.*
 import androidx.fragment.app.*
 import androidx.lifecycle.*
 import androidx.navigation.*
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.fragment.*
+import com.example.bottomnestednavigationtest.*
 import com.example.bottomnestednavigationtest.R
 import com.example.bottomnestednavigationtest.databinding.*
 
@@ -38,13 +40,33 @@ class HomeFragment : Fragment() {
 
         binding.buttonOpenNotification.setOnClickListener {
             val notificationsGraph =
-                findNavController().findDestination(R.id.navigation_graph_notifications) as? NavGraph
+                findNavController().findDestination(R.id.notifications_nav_graph) as? NavGraph
 
             notificationsGraph?.startDestinationId?.let { startDestinationId ->
-                notificationsGraph.setStartDestination(R.id.navigation_notification)
-                findNavController().navigate(R.id.action_navigation_home_to_navigation_notifications)
-                notificationsGraph.setStartDestination(startDestinationId)
+//                notificationsGraph.setStartDestination(R.id.notification_fragment)
+                findNavController().navigate(R.id.notifications_nav_graph,
+//                    null,
+//                    navOptions {
+//                        launchSingleTop = true
+//                        restoreState = true
+//                        popUpTo(findNavController().graph.findStartDestination().id) {
+//                            inclusive = false
+//                            saveState = true
+//                        }
+//                    }
+                )
+//                notificationsGraph.setStartDestination(startDestinationId)
             }
+        }
+
+        binding.buttonOpenCounter.setOnClickListener {
+            findNavController().navigate(HomeFragmentDirections.actionNavigationHomeToNavigationCount())
+        }
+
+        binding.buttonAdditional.setOnClickListener {
+            findNavController().navigate(
+                HomeNavGraphDirections.actionGraphHomeToGraphAdditional()
+            )
         }
 
         return root

@@ -2,22 +2,26 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/navigation_graph_notifications"
-    app:startDestination="@id/navigation_notifications">
+    android:id="@+id/notifications_nav_graph"
+    app:startDestination="@id/notifications_fragment">
 
     <fragment
-        android:id="@+id/navigation_notifications"
+        android:id="@+id/notifications_fragment"
         android:name="com.example.bottomnestednavigationtest.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications">
         <action
             android:id="@+id/action_navigation_notifications_to_navigation_notification"
-            app:destination="@id/navigation_notification" />
+            app:destination="@id/notification_fragment" />
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_notification"
+        android:id="@+id/notification_fragment"
         android:name="com.example.bottomnestednavigationtest.ui.notifications.NotificationFragment"
         android:label="Уведомление"
-        tools:layout="@layout/fragment_notification" />
+        tools:layout="@layout/fragment_notification">
+
+        <deepLink
+            app:uri="app://bottomnestednavigationtest/navigation_notification" />
+    </fragment>
 </navigation>

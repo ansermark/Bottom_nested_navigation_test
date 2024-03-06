@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.*
 import com.example.bottomnestednavigationtest.databinding.FragmentNotificationsBinding
 
 class NotificationsFragment : Fragment() {
@@ -27,6 +28,10 @@ class NotificationsFragment : Fragment() {
 
         _binding = FragmentNotificationsBinding.inflate(inflater, container, false)
         val root: View = binding.root
+
+        binding.buttonOpenNotification.setOnClickListener {
+            findNavController().navigate(NotificationsFragmentDirections.actionNavigationNotificationsToNavigationNotification())
+        }
 
         val textView: TextView = binding.textNotifications
         notificationsViewModel.text.observe(viewLifecycleOwner) {
