@@ -17,6 +17,7 @@
 
     <fragment
         android:id="@+id/count_fragment"
+        android:label="Counter"
         android:name="com.example.bottomnestednavigationtest.ui.home.CountFragment"
         tools:layout="@layout/fragment_count">
 

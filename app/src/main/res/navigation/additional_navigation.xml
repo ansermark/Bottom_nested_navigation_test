@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/additional_fragment"
         android:name="com.example.bottomnestednavigationtest.ui.additional.AdditionalFragment"
-        android:label="fragment_additional"
+        android:label="Additional"
         tools:layout="@layout/fragment_additional" />
 
     <action

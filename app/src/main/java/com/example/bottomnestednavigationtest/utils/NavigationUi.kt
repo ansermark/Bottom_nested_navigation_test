@@ -3,20 +3,21 @@ package com.example.bottomnestednavigationtest.utils
 import android.os.*
 import android.view.*
 import androidx.annotation.*
-import androidx.core.view.*
 import androidx.navigation.*
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.ui.*
-import androidx.navigation.ui.R
 import com.google.android.material.navigation.*
 import java.lang.ref.*
+import androidx.navigation.ui.R as NavigationUiR
 
 /**
  * Класс, содержащий методы, используемые для настройки методов навигации в приложении,
  * таких как navigation drawer или bottom nav bar при помощи [NavController].
  */
 object NavigationUi {
+
+    private var lastStartMenuItemDestination: NavDestination? = null
 
     /**
      * Пытается навигироваться на [NavDestination], связанный с переданным MenuItem. Этому
@@ -34,39 +35,57 @@ object NavigationUi {
      * @param navController NavController, содержащий destination
      * @return True, если [NavController] смог навигироваться на destination, связанный с переданным MenuItem
      */
-    fun onNavDestinationSelected(item: MenuItem, navController: NavController): Boolean {
+    private fun onNavDestinationSelected(item: MenuItem, navController: NavController): Boolean {
+        val itemId = item.itemId
+        val startDestination = navController.graph.startDestinationId
         val navOptions = navOptions {
             launchSingleTop = true
             restoreState = true
 
             if (navController.currentDestination!!.parent!!.findNode(item.itemId) is ActivityNavigator.Destination) {
                 anim {
-                    enter = R.anim.nav_default_enter_anim
-                    exit = R.anim.nav_default_exit_anim
-                    popEnter = R.anim.nav_default_pop_enter_anim
-                    popExit = R.anim.nav_default_pop_exit_anim
+                    enter = NavigationUiR.anim.nav_default_enter_anim
+                    exit = NavigationUiR.anim.nav_default_exit_anim
+                    popEnter = NavigationUiR.anim.nav_default_pop_enter_anim
+                    popExit = NavigationUiR.anim.nav_default_pop_exit_anim
                 }
             } else {
                 anim {
-                    enter = R.animator.nav_default_enter_anim
-                    exit = R.animator.nav_default_exit_anim
-                    popEnter = R.animator.nav_default_pop_enter_anim
-                    popExit = R.animator.nav_default_pop_exit_anim
+                    enter = NavigationUiR.animator.nav_default_enter_anim
+                    exit = NavigationUiR.animator.nav_default_exit_anim
+                    popEnter = NavigationUiR.animator.nav_default_pop_enter_anim
+                    popExit = NavigationUiR.animator.nav_default_pop_exit_anim
                 }
             }
 
-            if (item.order and Menu.CATEGORY_SECONDARY == 0) {
-                navController.previousBackStackEntry
-                popUpTo(navController.graph.findStartDestination().id) {
-                    inclusive = false
-                    saveState = true
-                }
+            if (itemId != startDestination && lastStartMenuItemDestination == null) {
+                lastStartMenuItemDestination = navController.currentDestination
+            }
+
+            popUpTo(lastStartMenuItemDestination?.id ?: navController.graph.findStartDestination().id) {
+                inclusive = false
+                saveState = true
             }
         }
 
         return try {
-            navController.navigate(item.itemId, null, navOptions)
-            navController.currentDestination?.matchDestination(item.itemId) == true
+            if (itemId == startDestination && lastStartMenuItemDestination != null) {
+                val back = navController.currentBackStack.value.map { it.destination }
+                val index = back.indexOfLast { it.id == lastStartMenuItemDestination?.id }.takeIf { it >= 0 }
+                val backDropped = index?.let { back.drop(it + 1) } ?: emptyList()
+                val destination = backDropped.firstOrNull()
+
+                if (destination != null) {
+                    navController.popBackStack(destination.id, true, true)
+                } else {
+                    navController.popBackStack(lastStartMenuItemDestination!!.id, false, true)
+                }
+                lastStartMenuItemDestination = null
+            } else {
+                navController.navigate(item.itemId, null, navOptions)
+            }
+            false
+//            navController.currentDestination?.matchDestination(item.itemId) == true
         } catch (e: IllegalArgumentException) {
             false
         }
@@ -76,10 +95,34 @@ object NavigationUi {
         val menuGraph = navController.graph[item.itemId] as NavGraph
 
         navController.navigate(
-            menuGraph.startDestinationId,
+            menuGraph.id,
             null,
-            navOptions { popUpTo(menuGraph.id) }
+            navOptions {
+                if (navController.currentDestination!!.parent!!.findNode(item.itemId) is ActivityNavigator.Destination) {
+                    anim {
+                        enter = NavigationUiR.anim.nav_default_enter_anim
+                        exit = NavigationUiR.anim.nav_default_exit_anim
+                        popEnter = NavigationUiR.anim.nav_default_pop_enter_anim
+                        popExit = NavigationUiR.anim.nav_default_pop_exit_anim
+                    }
+                } else {
+                    anim {
+                        enter = NavigationUiR.animator.nav_default_enter_anim
+                        exit = NavigationUiR.animator.nav_default_exit_anim
+                        popEnter = NavigationUiR.animator.nav_default_pop_enter_anim
+                        popExit = NavigationUiR.animator.nav_default_pop_exit_anim
+                    }
+                }
+
+                popUpTo(menuGraph.id)
+            }
         )
+
+//        navController.navigate(
+//            menuGraph.startDestinationId,
+//            null,
+//            navOptions { popUpTo(menuGraph.id) }
+//        )
 //        val s = (navController.graph[item.itemId] as? NavGraph)
 //        navController.popBackStack(item.itemId, false)
 //        val navOptions = navController.currentDestination?.let {
@@ -111,9 +154,9 @@ object NavigationUi {
         navigationBarView.setOnItemSelectedListener { item ->
             onNavDestinationSelected(item, navController)
         }
-//        navigationBarView.setOnItemReselectedListener { item ->
-//            onNavDestinationReselected(item, navController)
-//        }
+        navigationBarView.setOnItemReselectedListener { item ->
+            onNavDestinationReselected(item, navController)
+        }
 
         val viewReference = WeakReference(navigationBarView)
 
@@ -135,17 +178,25 @@ object NavigationUi {
                         return
                     }
 
-                    view.menu.forEach { item ->
-                        if (destination.matchDestination(item.itemId)) {
-                            item.isChecked = true
-                        }
+                    val currentDestinationMenuItem = view.menu.findItem(destination.parent!!.id)
+                    val startMenuItem = view.menu.findItem(controller.graph.startDestinationId)
+                    val previousDestination = controller.previousBackStackEntry?.destination
+                    val previousDestinationMenuItem = previousDestination?.let { view.menu.findItem(it.parent!!.id) }
+
+                    if (
+                        lastStartMenuItemDestination == null
+                        && currentDestinationMenuItem != null
+                        && currentDestinationMenuItem != startMenuItem
+                        && currentDestinationMenuItem != previousDestinationMenuItem
+                    ) {
+                        lastStartMenuItemDestination = previousDestination
                     }
-//                    view.menu.children
-//                        .map { it.itemId }
-//                        .toList()
-//                        .intersect(destination.hierarchy.map { it.id }.toSet())
-//                        .firstOrNull()
-//                        ?.let { view.menu.findItem(it)?.isChecked = true }
+
+                    if (currentDestinationMenuItem != null) {
+                        currentDestinationMenuItem.isChecked = true
+                    } else if (previousDestinationMenuItem != null) {
+                        previousDestinationMenuItem.isChecked = true
+                    }
                 }
             }
         )
