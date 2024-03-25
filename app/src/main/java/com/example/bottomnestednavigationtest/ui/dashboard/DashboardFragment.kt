@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.*
 import com.example.bottomnestednavigationtest.databinding.FragmentDashboardBinding
 
 class DashboardFragment : Fragment() {
@@ -33,6 +34,16 @@ class DashboardFragment : Fragment() {
             textView.text = it
         }
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.buttonAdditional.setOnClickListener {
+            findNavController().navigate(DashboardFragmentDirections.toGraphAdditional())
+        }
+        binding.buttonToHome.setOnClickListener {
+            findNavController().navigate(DashboardFragmentDirections.toGraphHome())
+        }
     }
 
     override fun onDestroyView() {

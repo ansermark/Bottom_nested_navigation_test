@@ -1,10 +1,10 @@
 package com.example.bottomnestednavigationtest.utils
 
+import android.annotation.*
 import android.os.*
+import android.util.*
 import android.view.*
-import androidx.annotation.*
 import androidx.navigation.*
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.ui.*
 import com.google.android.material.navigation.*
@@ -13,85 +13,71 @@ import androidx.navigation.ui.R as NavigationUiR
 
 /**
  * Класс, содержащий методы, используемые для настройки методов навигации в приложении,
- * таких как navigation drawer или bottom nav bar при помощи [NavController].
+ * таких как [NavigationBarView] или Toolbar при помощи [NavController].
  */
 object NavigationUi {
 
-    private var lastStartMenuItemDestination: NavDestination? = null
-
     /**
-     * Пытается навигироваться на [NavDestination], связанный с переданным MenuItem. Этому
-     * MenuItem следует быть добавленным одним из вспомогательных методов в этом классе
-     *
-     * Важно, что полагается, что [menu item id][MenuItem.getItemId] совпадает с валидным
-     * [action id][NavDestination.getAction] или [destination id][NavDestination.id], на которые
-     * необходимо навигироваться
-     *
-     * По умолчанию, back stack откатится к start destination навигационного графа.
-     * Пункты меню, в которых указан аргумент `android:menuCategory="secondary"` не откатят back stack
-     * к start destination
-     *
-     * @param item Выбранный MenuItem.
-     * @param navController NavController, содержащий destination
-     * @return True, если [NavController] смог навигироваться на destination, связанный с переданным MenuItem
+     * Id последнего [NavDestination] в бэк стеке, который можно отнести к стартовой вкладке меню
      */
-    private fun onNavDestinationSelected(item: MenuItem, navController: NavController): Boolean {
-        val itemId = item.itemId
-        val startDestination = navController.graph.startDestinationId
-        val navOptions = navOptions {
-            launchSingleTop = true
-            restoreState = true
+    private var lastStartMenuItemEntryIndex: Int? = null
 
-            if (navController.currentDestination!!.parent!!.findNode(item.itemId) is ActivityNavigator.Destination) {
-                anim {
-                    enter = NavigationUiR.anim.nav_default_enter_anim
-                    exit = NavigationUiR.anim.nav_default_exit_anim
-                    popEnter = NavigationUiR.anim.nav_default_pop_enter_anim
-                    popExit = NavigationUiR.anim.nav_default_pop_exit_anim
-                }
-            } else {
-                anim {
-                    enter = NavigationUiR.animator.nav_default_enter_anim
-                    exit = NavigationUiR.animator.nav_default_exit_anim
-                    popEnter = NavigationUiR.animator.nav_default_pop_enter_anim
-                    popExit = NavigationUiR.animator.nav_default_pop_exit_anim
-                }
-            }
+    private fun onNavDestinationSelected(item: MenuItem, navController: NavController) {
+        val graphStartDestinationId = navController.graph.startDestinationId
 
-            if (itemId != startDestination && lastStartMenuItemDestination == null) {
-                lastStartMenuItemDestination = navController.currentDestination
-            }
-
-            popUpTo(lastStartMenuItemDestination?.id ?: navController.graph.findStartDestination().id) {
-                inclusive = false
-                saveState = true
-            }
+        if (item.itemId != graphStartDestinationId && lastStartMenuItemEntryIndex == null) {
+            lastStartMenuItemEntryIndex = navController.backStack.indexOf(navController.currentBackStackEntry)
         }
 
-        return try {
-            if (itemId == startDestination && lastStartMenuItemDestination != null) {
-                val back = navController.currentBackStack.value.map { it.destination }
-                val index = back.indexOfLast { it.id == lastStartMenuItemDestination?.id }.takeIf { it >= 0 }
-                val backDropped = index?.let { back.drop(it + 1) } ?: emptyList()
-                val destination = backDropped.firstOrNull()
+        if (item.itemId == graphStartDestinationId && lastStartMenuItemEntryIndex != null) {
+            val destinationNext = navController.backStack.getOrNull(lastStartMenuItemEntryIndex!! + 1)?.destination
 
-                if (destination != null) {
-                    navController.popBackStack(destination.id, true, true)
-                } else {
-                    navController.popBackStack(lastStartMenuItemDestination!!.id, false, true)
-                }
-                lastStartMenuItemDestination = null
-            } else {
-                navController.navigate(item.itemId, null, navOptions)
+            if (destinationNext != null) {
+                lastStartMenuItemEntryIndex = null
+                navController.popBackStack(destinationNext.id, true, true)
             }
-            false
-//            navController.currentDestination?.matchDestination(item.itemId) == true
-        } catch (e: IllegalArgumentException) {
-            false
+        } else {
+            val navOptions = navOptions {
+                launchSingleTop = true
+                restoreState = true
+
+                if (navController.currentDestination!!.parent!!.findNode(item.itemId) is ActivityNavigator.Destination) {
+                    anim {
+                        enter = NavigationUiR.anim.nav_default_enter_anim
+                        exit = NavigationUiR.anim.nav_default_exit_anim
+                        popEnter = NavigationUiR.anim.nav_default_pop_enter_anim
+                        popExit = NavigationUiR.anim.nav_default_pop_exit_anim
+                    }
+                } else {
+                    anim {
+                        enter = NavigationUiR.animator.nav_default_enter_anim
+                        exit = NavigationUiR.animator.nav_default_exit_anim
+                        popEnter = NavigationUiR.animator.nav_default_pop_enter_anim
+                        popExit = NavigationUiR.animator.nav_default_pop_exit_anim
+                    }
+                }
+
+                val destination = if (lastStartMenuItemEntryIndex != null) {
+                    navController.backStack[lastStartMenuItemEntryIndex!!].destination
+                } else {
+                    navController.graph.findStartDestination()
+                }
+
+                popUpTo(destination.id) {
+                    inclusive = false
+                    saveState = true
+                }
+            }
+
+            try {
+                navController.navigate(item.itemId, null, navOptions)
+            } catch (e: IllegalArgumentException) {
+                Log.e(NavigationUi.javaClass.simpleName, "Error while navigating", e)
+            }
         }
     }
 
-    fun onNavDestinationReselected(item: MenuItem, navController: NavController) {
+    private fun onNavDestinationReselected(item: MenuItem, navController: NavController) {
         val menuGraph = navController.graph[item.itemId] as NavGraph
 
         navController.navigate(
@@ -117,42 +103,18 @@ object NavigationUi {
                 popUpTo(menuGraph.id)
             }
         )
-
-//        navController.navigate(
-//            menuGraph.startDestinationId,
-//            null,
-//            navOptions { popUpTo(menuGraph.id) }
-//        )
-//        val s = (navController.graph[item.itemId] as? NavGraph)
-//        navController.popBackStack(item.itemId, false)
-//        val navOptions = navController.currentDestination?.let {
-//            navOptions { popUpTo(it.id) { inclusive = true } }
-//        }
-
-//        navController.navigate(
-//            item.itemId,
-//            null,
-//            navOptions { popUpTo(item.itemId) }
-//        )
-//        navController.navigate(item.itemId, null, navOptions)
     }
 
     /**
-     * Настраивает [NavigationBarView] для использования с [NavController]. При выборе пункта бокового меню
-     * будет вызван [onNavDestinationSelected]
+     * Синхронизирует работу [NavigationBarView] с [NavController]. При выборе вкладки нижней навигации
+     * будет вызван [onNavDestinationSelected], при повторном выборе вкладки будет вызван [onNavDestinationReselected]
      *
-     * Выбранный пункт будет изменен после сразу после навигации
-     *
-     * @param navigationBarView NavigationBarView, синхронизированный с NavController
-     * @param navController NavController содержащий главные и второстепенные пункты меню.
-     * Навигация в этом NavController будет отражена в NavigationView.
+     * После навигации будет выбрана подходящая вкладка
      */
-    fun setupWithNavController(
-        navigationBarView: NavigationBarView,
-        navController: NavController
-    ) {
+    fun setupWithNavController(navigationBarView: NavigationBarView, navController: NavController) {
         navigationBarView.setOnItemSelectedListener { item ->
             onNavDestinationSelected(item, navController)
+            false
         }
         navigationBarView.setOnItemReselectedListener { item ->
             onNavDestinationReselected(item, navController)
@@ -184,12 +146,18 @@ object NavigationUi {
                     val previousDestinationMenuItem = previousDestination?.let { view.menu.findItem(it.parent!!.id) }
 
                     if (
-                        lastStartMenuItemDestination == null
+                        lastStartMenuItemEntryIndex == null
                         && currentDestinationMenuItem != null
                         && currentDestinationMenuItem != startMenuItem
                         && currentDestinationMenuItem != previousDestinationMenuItem
                     ) {
-                        lastStartMenuItemDestination = previousDestination
+                        lastStartMenuItemEntryIndex = controller.backStack.indexOf(controller.previousBackStackEntry)
+                    } else if (
+                        lastStartMenuItemEntryIndex != null
+                        && currentDestinationMenuItem == startMenuItem
+                        && currentDestinationMenuItem != previousDestinationMenuItem
+                    ) {
+                        lastStartMenuItemEntryIndex = null
                     }
 
                     if (currentDestinationMenuItem != null) {
@@ -202,6 +170,7 @@ object NavigationUi {
         )
     }
 
-    internal fun NavDestination.matchDestination(@IdRes destId: Int): Boolean =
-        hierarchy.any { it.id == destId }
+    private val NavController.backStack: List<NavBackStackEntry>
+        @SuppressLint("RestrictedApi")
+        get() = currentBackStack.value
 }
