@@ -1,14 +1,12 @@
 package com.example.bottomnestednavigationtest.ui.dashboard
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import android.os.*
+import android.view.*
+import android.widget.*
+import androidx.fragment.app.*
+import androidx.lifecycle.*
 import androidx.navigation.fragment.*
-import com.example.bottomnestednavigationtest.databinding.FragmentDashboardBinding
+import com.example.bottomnestednavigationtest.databinding.*
 
 class DashboardFragment : Fragment() {
 
@@ -39,7 +37,7 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.buttonAdditional.setOnClickListener {
-            findNavController().navigate(DashboardFragmentDirections.toGraphAdditional())
+            findNavController().navigate(DashboardFragmentDirections.toGraphAdditional("From dashboard"))
         }
         binding.buttonToHome.setOnClickListener {
             findNavController().navigate(DashboardFragmentDirections.toGraphHome())

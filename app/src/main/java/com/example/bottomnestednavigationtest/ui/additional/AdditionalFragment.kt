@@ -1,11 +1,9 @@
 package com.example.bottomnestednavigationtest.ui.additional
 
-import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
+import android.os.*
+import android.view.*
+import android.widget.*
+import androidx.fragment.app.*
 import androidx.navigation.fragment.*
 import com.example.bottomnestednavigationtest.R
 
@@ -23,6 +21,8 @@ class AdditionalFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    private val args: AdditionalFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +42,8 @@ class AdditionalFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.findViewById<Button>(R.id.button_to_counter).setOnClickListener {
-            findNavController().popBackStack(R.id.home_fragment, false)
-        }
+        view.findViewById<TextView>(R.id.textView).text =
+            "Additional fragment from independent graph.\nNavigated: ${args.navigatedFrom}"
     }
 
     companion object {

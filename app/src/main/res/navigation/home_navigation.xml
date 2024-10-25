@@ -17,8 +17,8 @@
 
     <fragment
         android:id="@+id/count_fragment"
-        android:label="Counter"
         android:name="com.example.bottomnestednavigationtest.ui.home.CountFragment"
+        android:label="Counter"
         tools:layout="@layout/fragment_count">
 
         <argument
@@ -36,5 +36,10 @@
 
     <action
         android:id="@+id/action_graph_home_to_graph_additional"
-        app:destination="@id/additional_nav_graph" />
+        app:destination="@id/additional_nav_graph">
+
+        <argument
+            android:name="navigated_from"
+            app:argType="string" />
+    </action>
 </navigation>

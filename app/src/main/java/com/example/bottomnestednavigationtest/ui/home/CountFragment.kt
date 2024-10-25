@@ -4,13 +4,11 @@ import android.annotation.*
 import android.os.*
 import android.view.*
 import androidx.annotation.*
-import androidx.core.net.*
 import androidx.fragment.app.*
 import androidx.navigation.*
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.fragment.*
+import androidx.navigation.ui.*
 import com.example.bottomnestednavigationtest.*
-import com.example.bottomnestednavigationtest.R
 import com.example.bottomnestednavigationtest.databinding.*
 
 class CountFragment : Fragment() {
@@ -24,45 +22,29 @@ class CountFragment : Fragment() {
         _binding = FragmentCountBinding.inflate(inflater, container, false)
         val root = binding.root
 
-        binding.buttonOpenNotification.setOnClickListener {
-            val request = NavDeepLinkRequest.Builder
-                .fromUri("app://bottomnestednavigationtest/navigation_notification".toUri())
-                .build()
-            findNavController().navigate(request)
-//            val notificationsGraph =
-//                findNavController().findDestination(R.id.navigation_graph_notifications) as? NavGraph
-//
-//            notificationsGraph?.startDestinationId?.let { startDestinationId ->
-//                notificationsGraph.setStartDestination(R.id.navigation_notification)
-//                findNavController().navigate(
-//                    NavigationGraphHomeDirections.actionGraphHomeToGraphNotifications(),
-//                    navOptions {
-//                        popUpTo(findNavController().graph.findStartDestination().id) {
-//                            inclusive = false
-//                            saveState = true
-//                        }
-//                    }
-//                )
-//                notificationsGraph.setStartDestination(startDestinationId)
-//            }
-        }
-
         binding.buttonAdd.setOnClickListener {
-            findNavController().navigate(CountFragmentDirections.actionNavigationCountSelf(args.counter + 1))
+            findNavController().navigate(
+                CountFragmentDirections.actionNavigationCountSelf(args.counter + 1)
+            )
         }
 
         binding.buttonAdditional.setOnClickListener {
             findNavController().navigate(
-                HomeNavGraphDirections.actionGraphHomeToGraphAdditional()
-//                navOptions {
-//                    popUpTo(R.id.navigation_home)
-//                }
+                HomeNavGraphDirections.actionGraphHomeToGraphAdditional("From count fragment")
             )
         }
 
         binding.textCounter.text = args.counter.toString()
 
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val activity = requireActivity() as MainActivity
+
+        binding.toolbar.setupWithNavController(activity.navController, activity.appBarConfiguration)
     }
 
     override fun onDestroyView() {

@@ -13,11 +13,19 @@
 
         <action
             android:id="@+id/to_graph_additional"
-            app:destination="@id/additional_nav_graph" />
+            app:destination="@id/additional_nav_graph">
+
+            <argument
+                android:name="navigated_from"
+                app:argType="string" />
+        </action>
 
         <action
             android:id="@+id/to_graph_home"
             app:destination="@id/home_nav_graph"
-            app:popUpTo="@id/home_nav_graph" />
+            app:launchSingleTop="true"
+            app:popUpTo="@id/home_fragment"
+            app:popUpToSaveState="true"
+            app:restoreState="true" />
     </fragment>
 </navigation>

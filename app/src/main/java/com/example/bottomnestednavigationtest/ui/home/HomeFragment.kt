@@ -39,24 +39,18 @@ class HomeFragment : Fragment() {
         }
 
         binding.buttonOpenNotification.setOnClickListener {
-            val notificationsGraph =
-                findNavController().findDestination(R.id.notifications_nav_graph) as? NavGraph
+            findNavController().navigate(
+                R.id.notifications_nav_graph,
+                null,
+                navOptions {
+                    launchSingleTop = true
+                    restoreState = true
 
-            notificationsGraph?.startDestinationId?.let { startDestinationId ->
-//                notificationsGraph.setStartDestination(R.id.notification_fragment)
-                findNavController().navigate(R.id.notifications_nav_graph,
-//                    null,
-//                    navOptions {
-//                        launchSingleTop = true
-//                        restoreState = true
-//                        popUpTo(findNavController().graph.findStartDestination().id) {
-//                            inclusive = false
-//                            saveState = true
-//                        }
-//                    }
-                )
-//                notificationsGraph.setStartDestination(startDestinationId)
-            }
+                    popUpTo(findNavController().graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                }
+            )
         }
 
         binding.buttonOpenCounter.setOnClickListener {
@@ -65,7 +59,7 @@ class HomeFragment : Fragment() {
 
         binding.buttonAdditional.setOnClickListener {
             findNavController().navigate(
-                HomeNavGraphDirections.actionGraphHomeToGraphAdditional()
+                HomeNavGraphDirections.actionGraphHomeToGraphAdditional("From home")
             )
         }
 

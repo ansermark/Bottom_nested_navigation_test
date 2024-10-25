@@ -9,9 +9,9 @@
         android:id="@+id/additional_fragment"
         android:name="com.example.bottomnestednavigationtest.ui.additional.AdditionalFragment"
         android:label="Additional"
-        tools:layout="@layout/fragment_additional" />
-
-    <action
-        android:id="@+id/action_graph_additional_to_graph_home"
-        app:destination="@id/home_nav_graph" />
+        tools:layout="@layout/fragment_additional">
+        <argument
+            android:name="navigated_from"
+            app:argType="string" />
+    </fragment>
 </navigation>

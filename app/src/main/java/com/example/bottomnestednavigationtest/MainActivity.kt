@@ -1,6 +1,7 @@
 package com.example.bottomnestednavigationtest
 
 import android.os.*
+import androidx.activity.*
 import androidx.appcompat.app.*
 import androidx.navigation.*
 import androidx.navigation.fragment.*
@@ -13,7 +14,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    private val appBarConfiguration: AppBarConfiguration by lazy {
+    val navController: NavController by lazy {
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
+        navHostFragment.navController
+    }
+
+    val appBarConfiguration: AppBarConfiguration by lazy {
         AppBarConfiguration(
             topLevelDestinationIds = setOf(R.id.home_nav_graph),
             fallbackOnNavigateUpListener = {
@@ -23,11 +30,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    private val navController: NavController by lazy {
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
-        navHostFragment.navController
-    }
+    private var backPressedCallback: OnBackPressedCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,10 +39,37 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val navView: BottomNavigationView = binding.navView
-
+//        val navGraph = navController.navInflater.inflate(R.navigation.global_host)
+//            .apply { setStartDestination(R.id.dashboard_nav_graph) }
+//
+//        navController.graph = navGraph
         setupActionBarWithNavController(navController, appBarConfiguration)
+
         navView.setupWithNavController(navController)
+
+        backPressedCallback = onBackPressedDispatcher.addCallback(
+            owner = this,
+            enabled = false,
+            onBackPressed = { navView.restoreStartDestination(navController) }
+        )
+
+        navController.addOnDestinationChangedListener(object : NavController.OnDestinationChangedListener {
+            override fun onDestinationChanged(
+                controller: NavController,
+                destination: NavDestination,
+                arguments: Bundle?
+            ) {
+                backPressedCallback?.isEnabled = binding.navView.needRestoreStartDestination(navController)
+            }
+        })
     }
 
-    override fun onSupportNavigateUp(): Boolean = navController.navigateUp(appBarConfiguration)
+    override fun onDestroy() {
+        super.onDestroy()
+        backPressedCallback = null
+    }
+
+    override fun onSupportNavigateUp(): Boolean =
+        binding.navView.restoreStartDestination(navController) ||
+            navController.navigateUp(appBarConfiguration)
 }
