@@ -30,9 +30,9 @@ object NavigationUi {
         navigationBarView.setOnItemSelectedListener { item ->
             onNavDestinationSelected(navController, item)
         }
-//        navigationBarView.setOnItemReselectedListener { item ->
-//            onNavDestinationReselected(item, navController)
-//        }
+        navigationBarView.setOnItemReselectedListener { item ->
+            onNavDestinationReselected(navController, item)
+        }
 
         val viewReference = WeakReference(navigationBarView)
 
@@ -112,27 +112,12 @@ object NavigationUi {
     private fun onNavDestinationReselected(navController: NavController, item: MenuItem) {
         val menuGraph = navController.graph[item.itemId] as NavGraph
 
-        val navOptions = navOptions {
-            anim {
-                if (
-                    navController.currentDestination!!.parent!!.findNode(item.itemId)
-                        is ActivityNavigator.Destination
-                ) {
-                    enter = NavigationUiR.anim.nav_default_enter_anim
-                    exit = NavigationUiR.anim.nav_default_exit_anim
-                    popEnter = NavigationUiR.anim.nav_default_pop_enter_anim
-                    popExit = NavigationUiR.anim.nav_default_pop_exit_anim
-                } else {
-                    enter = NavigationUiR.animator.nav_default_enter_anim
-                    exit = NavigationUiR.animator.nav_default_exit_anim
-                    popEnter = NavigationUiR.animator.nav_default_pop_enter_anim
-                    popExit = NavigationUiR.animator.nav_default_pop_exit_anim
-                }
-            }
+        if (navController.currentDestination == menuGraph.findStartDestination()) {
+            return
         }
         // навигация на граф соответствующего пункта меню с очищением стека
         navController.navigate(
-            menuGraph.id,
+            item.itemId,
             null,
             navOptions {
                 if (navController.currentDestination!!.parent!!.findNode(item.itemId) is ActivityNavigator.Destination) {
@@ -151,7 +136,7 @@ object NavigationUi {
                     }
                 }
 
-                popUpTo(menuGraph.id)
+                popUpTo(item.itemId)
             }
         )
     }

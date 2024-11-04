@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
     val appBarConfiguration: AppBarConfiguration by lazy {
         AppBarConfiguration(
-            topLevelDestinationIds = setOf(R.id.home_nav_graph),
+            topLevelDestinationIds = emptySet(),
             fallbackOnNavigateUpListener = {
                 onBackPressedDispatcher.onBackPressed()
                 true
@@ -39,13 +39,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val navView: BottomNavigationView = binding.navView
-//        val navGraph = navController.navInflater.inflate(R.navigation.global_host)
-//            .apply { setStartDestination(R.id.dashboard_nav_graph) }
-//
-//        navController.graph = navGraph
-        setupActionBarWithNavController(navController, appBarConfiguration)
 
-        navView.setupWithNavController(navController)
+        swapNavHost()
+
+        setupActionBarWithNavController(navController, appBarConfiguration)
 
         backPressedCallback = onBackPressedDispatcher.addCallback(
             owner = this,
@@ -72,4 +69,28 @@ class MainActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean =
         binding.navView.restoreStartDestination(navController) ||
             navController.navigateUp(appBarConfiguration)
+
+    private var isOmitted = false
+
+    fun swapNavHost() {
+        if (isOmitted) {
+            val navGraph = navController.navInflater.inflate(R.navigation.global_host)
+                .apply { setStartDestination(R.id.home_nav_graph) }
+
+            navController.graph = navGraph
+            binding.navView.menu.clear()
+            binding.navView.inflateMenu(R.menu.bottom_nav_menu)
+            binding.navView.setupWithNavController(navController)
+            isOmitted = false
+        } else {
+            val navGraph = navController.navInflater.inflate(R.navigation.global_host)
+                .apply { setStartDestination(R.id.dashboard_nav_graph) }
+
+            navController.graph = navGraph
+            binding.navView.menu.clear()
+            binding.navView.inflateMenu(R.menu.bottom_nav_menu_omitted)
+            binding.navView.setupWithNavController(navController)
+            isOmitted = true
+        }
+    }
 }

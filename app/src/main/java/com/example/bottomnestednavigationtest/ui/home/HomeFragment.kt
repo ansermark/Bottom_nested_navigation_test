@@ -63,6 +63,12 @@ class HomeFragment : Fragment() {
             )
         }
 
+        binding.buttonSwapNavigation.setOnClickListener {
+            val activity = requireActivity() as MainActivity
+
+            activity.swapNavHost()
+        }
+
         return root
     }
 
